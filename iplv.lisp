@@ -434,7 +434,7 @@
       (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
       (if (zero? link)
 	  (setf (h5) "-")
-	  (vv (H0) (cell link)) ;; (h5) is already + from above
+	  (setf (H0) (cell link)) ;; (h5) is already + from above
 	  )))
 
   (defj J66 "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
