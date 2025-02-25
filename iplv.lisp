@@ -34,7 +34,6 @@
 (defun new-symb-cell (symbol &optional (prefix "c"))
   (make-cell :name (symbol-name (gensym prefix)) :symb symbol))
 
-
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defun zero? (what)
@@ -295,6 +294,8 @@
 	unless (member (car i) (cdr i) :test #'equal)
 	collect (car i)))
 
+(defvar *jfn-plists* (make-hash-table :test #'equal))
+
 (defun reset! ()
   (clrhash *symtab*) 
   (setup-j-fns)
@@ -338,81 +339,29 @@
 ;;; J-Functions. 
 ;;; ===================================================================
 
-(eval-when (:execute :load-toplevel :compile-toplevel)
-  (defmacro defj (name explanation &rest forms)
-    `(let ((uname ,(string-upcase (format nil "~a" name))))
-       (setf (gethash uname *symtab*)
-	     (lambda (arg0 arg1)
-	       (!! :jfns ,(format nil "~%>>>>>>>>>> Calling ~a (~a)~%   ARG0=~~s, ARG1=~~s~%~%" name explanation) arg0 arg1)
-	       ,@forms))))
-  )
+;;; FFF Make this take the relevant number of args and pop them, and
+;;; push the relevant number of results on H0 in order to regluarize
+;;; the argument back-and-forth and H0 management mess.
+
+(defmacro defj (name args explanation &rest forms)
+  `(let ((uname ,(string-upcase (format nil "~a" name))))
+     (setf (gethash uname *jfn-plists*) '(arglist ,args))
+     (setf (gethash uname *symtab*)
+	   (lambda ,args
+	     ,@forms))))
+
+;;; FFF This probably doesn't have to be done at run-time, although
+;;; that doesn't harm anything. (But I tried unwrapping it, and
+;;; something went terribly wrong!)
 
 (defun setup-j-fns ()
 
-  (defj J2 "Unimplemented" (!! :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
-  (defj J3 "Unimplemented" (!! :jfns "WWW J3 IS UNIMPLEMENTED !!!~%"))
-  (defj J4 "Unimplemented" (!! :jfns "WWW J4 IS UNIMPLEMENTED !!!~%"))
-  (defj J5 "Unimplemented" (!! :jfns "WWW J5 IS UNIMPLEMENTED !!!~%"))
-  (defj J7 "Unimplemented" (!! :jfns "WWW J7 IS UNIMPLEMENTED !!!~%"))
-  (defj J8 "Unimplemented" (!! :jfns "WWW J8 IS UNIMPLEMENTED !!!~%"))
-  (defj J9 "Unimplemented" (!! :jfns "WWW J9 IS UNIMPLEMENTED !!!~%"))
-  (defj J10 "Unimplemented" (!! :jfns "WWW J10 IS UNIMPLEMENTED !!!~%"))
-  (defj J11 "Unimplemented" (!! :jfns "WWW J11 IS UNIMPLEMENTED !!!~%"))
-  (defj J14 "Unimplemented" (!! :jfns "WWW J14 IS UNIMPLEMENTED !!!~%"))
-  (defj J17 "Unimplemented" (!! :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
-  (defj J18 "Unimplemented" (!! :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
-  (defj J19 "Unimplemented" (!! :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
-  (defj J31 "Unimplemented" (!! :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
-  (defj J32 "Unimplemented" (!! :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
-  (defj J33 "Unimplemented" (!! :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
-  (defj J34 "Unimplemented" (!! :jfns "WWW J34 IS UNIMPLEMENTED !!!~%"))
-  (defj J35 "Unimplemented" (!! :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
-  (defj J36 "Unimplemented" (!! :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
-  (defj J38 "Unimplemented" (!! :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
-  (defj J41 "Unimplemented" (!! :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
-  (defj J42 "Unimplemented" (!! :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
-  (defj J43 "Unimplemented" (!! :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
-  (defj J50 "Unimplemented" (!! :jfns "WWW J50 IS UNIMPLEMENTED !!!~%"))
-  (defj J51 "Unimplemented" (!! :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
-  (defj J64 "Unimplemented" (!! :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
-  (defj J65 "Unimplemented" (!! :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
-  (defj J68 "Unimplemented" (!! :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
-  (defj J71 "Unimplemented" (!! :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
-  (defj J72 "Unimplemented" (!! :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
-  (defj J74 "Unimplemented" (!! :jfns "WWW J74 IS UNIMPLEMENTED !!!~%"))
-  (defj J75 "Unimplemented" (!! :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
-  (defj J76 "Unimplemented" (!! :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
-  (defj J78 "Unimplemented" (!! :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
-  (defj J81 "Unimplemented" (!! :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
-  (defj J82 "Unimplemented" (!! :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
-  (defj J91 "Unimplemented" (!! :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
-  (defj J111 "Unimplemented" (!! :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
-  (defj J115 "Unimplemented" (!! :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
-  (defj J116 "Unimplemented" (!! :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
-  (defj J124 "Unimplemented" (!! :jfns "WWW J124 IS UNIMPLEMENTED !!!~%"))
-  (defj J125 "Unimplemented" (!! :jfns "WWW J125 IS UNIMPLEMENTED !!!~%"))
-  (defj J130 "Unimplemented" (!! :jfns "WWW J130 IS UNIMPLEMENTED !!!~%"))
-  (defj J133 "Unimplemented" (!! :jfns "WWW J133 IS UNIMPLEMENTED !!!~%"))
-  (defj J136 "Unimplemented" (!! :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
-  (defj J137 "Unimplemented" (!! :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
-  (defj J138 "Unimplemented" (!! :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
-  (defj J147 "Unimplemented" (!! :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
-  (defj J148 "Unimplemented" (!! :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
-  (defj J155 "Unimplemented" (!! :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
-  (defj J157 "Unimplemented" (!! :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
-  (defj J160 "Unimplemented" (!! :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
-  (defj J161 "Unimplemented" (!! :jfns "WWW J161 IS UNIMPLEMENTED !!!~%"))
-  (defj J176 "Unimplemented" (!! :jfns "WWW J176 IS UNIMPLEMENTED !!!~%"))
-  (defj J181 "Unimplemented" (!! :jfns "WWW J181 IS UNIMPLEMENTED !!!~%"))
-  (defj J183 "Unimplemented" (!! :jfns "WWW J183 IS UNIMPLEMENTED !!!~%"))
-  (defj J184 "Unimplemented" (!! :jfns "WWW J184 IS UNIMPLEMENTED !!!~%"))
-
-  (defj J6 "REVERSE (0) and (1)" ;; WWW H1 is not (1)
+  (defj J6 () "REVERSE (0) and (1)" ;; WWW H1 is not (1)
       (let ((z (H0)))
 	(setf (H0) (first (H0+)))
 	(setf (first (H0+)) z)))
 
-  (defj J60 "LOCATE NEXT SYMBOL AFTER CELL (0)"
+  (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
     ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
     ;; cell. If a next cell exists (LINK of (0) not a termination
     ;; symbol), then the output (0) is the name of the next cell, and
@@ -437,7 +386,7 @@
 	  (setf (H0) (cell link)) ;; (h5) is already + from above
 	  )))
 
-  (defj J66 "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
+  (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
       ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
       ;; search of list (1) is made. against (0) (starting with the
       ;; cell after cell (1) . If (0) is found, J66 does nothing
@@ -466,14 +415,14 @@
 	  ;; Move to next cell if nothnig above returned out
 	  (setf list-cell (cell (cell-link list-cell)))))
 
-  (defj J73 "Copy list"
+  (defj J73 (arg0) "Copy list"
       (setf (H0)
 	    (copy-list
 	     (if (stringp arg0) (stack arg0)
 		 (if (listp arg0) arg0
 		     (error "J73 got ARG0=~s" arg0))))))
 
-  (defj J74 "Copy List Structure"
+  (defj J74 (arg0) "Copy List Structure"
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
       ;; which are in one-to-one correspondence with the cells of list structure
       ;; (0). All the regional and internal symbols in the cells will be identical
@@ -488,7 +437,7 @@
       (setf (H0) (copy-list-structure (H0)))
       )
 
-  (defj J90 "Create a blank cell on H0"
+  (defj J90 () "Create a blank cell on H0"
       ;; J90: Get a cell from the available space list, H2, and leave its name in HO.
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
@@ -498,7 +447,7 @@
 	(setf (cell name) cell)
 	(vv "H0" cell)))
 
-  (defj J100 "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
+  (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
       ;; (1) as input. The order is the order on the list, starting with the first
@@ -512,7 +461,7 @@
 	    (pop (H0+))
 	    ))
 
-  (defj J120 "COPY (0)"
+  (defj J120 (arg0) "COPY (0)"
       ;; COPY (0). The output (0) names a new cell containing the identical
       ;; contents to (0). The name is local if the input (0) is local; other-
       ;; wise, it is internal.
@@ -520,15 +469,15 @@
 	(setf (cell-name new-cell) (new-list-symbol))
 	(setf (H0) new-cell)))
 
-  (defj J151 "Print list (0)"
-      (mapcar #'print arg0))
+  (defj J151 (arg0) "Print list (0)"
+      (prlist arg0))
 
-  (defj J154 "Clear print line"
+  (defj J154 () "Clear print line"
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
       ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
       (format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
 
-  (defj J180 "READ LINE J180 READLINE"
+  (defj J180 () "READ LINE J180 READLINE"
     ;; The next record on unit 1W18 is read to line 1W24. (The record
       ;; is assumed to be BCD, 80 cols.) Column 1 of the record is
       ;; read into column 1 of the read line, and so forth. H5 is
@@ -540,7 +489,8 @@
 	       (push line (stack "W24"))
 	       (setf (cell-symb (h5)) "+"))
 	      (t (setf (cell-symb (h5)) "-")))))
-  )
+
+)
 
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
 ;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
@@ -603,12 +553,16 @@
 
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
-  (prog (cell pq q p symb link)
+  (prog (cell pq q p symb link jfn-hint)
+     ;; jfn-hint is needed because I can't figure out how to get the
+     ;; number of arguments a lambda needs in SBCL, and anyway it's
+     ;; useful for tracing which jfn we think we're running when all
+     ;; we have in hand is the lambda list.
      (setf (h1) (new-symb-cell "exit")) ;; Top of stack -- force exit (may be recursive)
      (vv "H1" start-cell) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
-     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s!~%" (h1))
+     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (jfn-hint = ~s)~%" (h1) jfn-hint)
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
@@ -616,15 +570,22 @@
      ;; it and then advance
      (when (null (H1)) (break "!!! PROBABLY MISSING A JFN DEFINITION !!!"))
      (when (functionp (h1))
-       (funcall (H1) (H0) (first (H0+))) ;; Call the fn passing the top and second cells in H0 as Arg0 and Arg1
+       (let* ((arglist (getf (gethash jfn-hint *jfn-plists*) 'arglist))
+	      (args (if (null arglist) ()
+			(cons (H0)
+			      (loop for arg in (cdr arglist)
+				    as val in (h0+)
+				    collect val)))))
+	 (!! :run ">>>>>>>>>> Calling ~a with: ~a = ~s~%" jfn-hint arglist args)
+	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
      (when (member :pre-exec-dump *!!list*)
-       (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
+       (format t "~%(( STATE BEFORE NEXT EXEC ))~%")
        (report-system-cells))
-     (!! :run "~%~%>>>>>>>>>> Executing: ~s~%~%" cell)
+     (!! :run "~%>>>>>>>>>> Executing: ~s~%" cell)
      (setf *trace-intruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
@@ -728,6 +689,7 @@
      (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
+     (setf jfn-hint (s))
      (vv "H1" (cell (s)))
      (go INTERPRET-Q)
    BRANCH 
@@ -760,6 +722,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:load :run :jfns)) ;; :pre-exec-dump :load :run :jfns :run-full :io
+(setf *!!list* '(:pre-exec-dump :load :run :jfns :run-full :io)) ;; :pre-exec-dump :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
