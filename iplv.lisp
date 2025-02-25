@@ -95,9 +95,9 @@
 ;;; This is a protected version of cell-name that de-refs if necessary.
 
 (defun cell-name% (cell-or-name)
-  (cell-name (de-ref-or-die cell-or-name)))
+  (cell-name (drod cell-or-name)))
 
-(defun de-ref-or-die (cell-or-name)
+(defun drod (cell-or-name) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (if (cell? cell) cell
@@ -339,119 +339,80 @@
 ;;; ===================================================================
 
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defmacro defj (name &rest forms)
-    `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtab*)
-	   (lambda (arg0 arg1)
-	     (!! :jfns ,(format nil "~%>>>>>>>>>> Calling ~a w/ARG0=~~s, ARG1=~~s~%~%" name) arg0 arg1)
-	     ,@forms)))
+  (defmacro defj (name explanation &rest forms)
+    `(let ((uname ,(string-upcase (format nil "~a" name))))
+       (setf (gethash uname *symtab*)
+	     (lambda (arg0 arg1)
+	       (!! :jfns ,(format nil "~%>>>>>>>>>> Calling ~a (~a)~%   ARG0=~~s, ARG1=~~s~%~%" name explanation) arg0 arg1)
+	       ,@forms))))
   )
 
 (defun setup-j-fns ()
 
-  (defj J2 (!! :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
-  (defj J3 (!! :jfns "WWW J3 IS UNIMPLEMENTED !!!~%"))
-  (defj J4 (!! :jfns "WWW J4 IS UNIMPLEMENTED !!!~%"))
-  (defj J5 (!! :jfns "WWW J5 IS UNIMPLEMENTED !!!~%"))
-  (defj J7 (!! :jfns "WWW J7 IS UNIMPLEMENTED !!!~%"))
-  (defj J8 (!! :jfns "WWW J8 IS UNIMPLEMENTED !!!~%"))
-  (defj J9 (!! :jfns "WWW J9 IS UNIMPLEMENTED !!!~%"))
-  (defj J10 (!! :jfns "WWW J10 IS UNIMPLEMENTED !!!~%"))
-  (defj J11 (!! :jfns "WWW J11 IS UNIMPLEMENTED !!!~%"))
-  (defj J14 (!! :jfns "WWW J14 IS UNIMPLEMENTED !!!~%"))
-  (defj J17 (!! :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
-  (defj J18 (!! :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
-  (defj J19 (!! :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
+  (defj J2 "Unimplemented" (!! :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
+  (defj J3 "Unimplemented" (!! :jfns "WWW J3 IS UNIMPLEMENTED !!!~%"))
+  (defj J4 "Unimplemented" (!! :jfns "WWW J4 IS UNIMPLEMENTED !!!~%"))
+  (defj J5 "Unimplemented" (!! :jfns "WWW J5 IS UNIMPLEMENTED !!!~%"))
+  (defj J7 "Unimplemented" (!! :jfns "WWW J7 IS UNIMPLEMENTED !!!~%"))
+  (defj J8 "Unimplemented" (!! :jfns "WWW J8 IS UNIMPLEMENTED !!!~%"))
+  (defj J9 "Unimplemented" (!! :jfns "WWW J9 IS UNIMPLEMENTED !!!~%"))
+  (defj J10 "Unimplemented" (!! :jfns "WWW J10 IS UNIMPLEMENTED !!!~%"))
+  (defj J11 "Unimplemented" (!! :jfns "WWW J11 IS UNIMPLEMENTED !!!~%"))
+  (defj J14 "Unimplemented" (!! :jfns "WWW J14 IS UNIMPLEMENTED !!!~%"))
+  (defj J17 "Unimplemented" (!! :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
+  (defj J18 "Unimplemented" (!! :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
+  (defj J19 "Unimplemented" (!! :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
+  (defj J31 "Unimplemented" (!! :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
+  (defj J32 "Unimplemented" (!! :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
+  (defj J33 "Unimplemented" (!! :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
+  (defj J34 "Unimplemented" (!! :jfns "WWW J34 IS UNIMPLEMENTED !!!~%"))
+  (defj J35 "Unimplemented" (!! :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
+  (defj J36 "Unimplemented" (!! :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
+  (defj J38 "Unimplemented" (!! :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
+  (defj J41 "Unimplemented" (!! :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
+  (defj J42 "Unimplemented" (!! :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
+  (defj J43 "Unimplemented" (!! :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
+  (defj J50 "Unimplemented" (!! :jfns "WWW J50 IS UNIMPLEMENTED !!!~%"))
+  (defj J51 "Unimplemented" (!! :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
+  (defj J64 "Unimplemented" (!! :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
+  (defj J65 "Unimplemented" (!! :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
+  (defj J68 "Unimplemented" (!! :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
+  (defj J71 "Unimplemented" (!! :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
+  (defj J72 "Unimplemented" (!! :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
+  (defj J74 "Unimplemented" (!! :jfns "WWW J74 IS UNIMPLEMENTED !!!~%"))
+  (defj J75 "Unimplemented" (!! :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
+  (defj J76 "Unimplemented" (!! :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
+  (defj J78 "Unimplemented" (!! :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
+  (defj J81 "Unimplemented" (!! :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+  (defj J82 "Unimplemented" (!! :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+  (defj J91 "Unimplemented" (!! :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
+  (defj J111 "Unimplemented" (!! :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
+  (defj J115 "Unimplemented" (!! :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
+  (defj J116 "Unimplemented" (!! :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
+  (defj J124 "Unimplemented" (!! :jfns "WWW J124 IS UNIMPLEMENTED !!!~%"))
+  (defj J125 "Unimplemented" (!! :jfns "WWW J125 IS UNIMPLEMENTED !!!~%"))
+  (defj J130 "Unimplemented" (!! :jfns "WWW J130 IS UNIMPLEMENTED !!!~%"))
+  (defj J133 "Unimplemented" (!! :jfns "WWW J133 IS UNIMPLEMENTED !!!~%"))
+  (defj J136 "Unimplemented" (!! :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
+  (defj J137 "Unimplemented" (!! :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
+  (defj J138 "Unimplemented" (!! :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
+  (defj J147 "Unimplemented" (!! :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  (defj J148 "Unimplemented" (!! :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  (defj J155 "Unimplemented" (!! :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
+  (defj J157 "Unimplemented" (!! :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
+  (defj J160 "Unimplemented" (!! :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
+  (defj J161 "Unimplemented" (!! :jfns "WWW J161 IS UNIMPLEMENTED !!!~%"))
+  (defj J176 "Unimplemented" (!! :jfns "WWW J176 IS UNIMPLEMENTED !!!~%"))
+  (defj J181 "Unimplemented" (!! :jfns "WWW J181 IS UNIMPLEMENTED !!!~%"))
+  (defj J183 "Unimplemented" (!! :jfns "WWW J183 IS UNIMPLEMENTED !!!~%"))
+  (defj J184 "Unimplemented" (!! :jfns "WWW J184 IS UNIMPLEMENTED !!!~%"))
 
-  ;; Restore W0-Wn
-  (defj J31 (!! :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
-  (defj J32 (!! :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
-  (defj J33 (!! :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
-  (defj J34 (!! :jfns "WWW J34 IS UNIMPLEMENTED !!!~%"))
-  (defj J35 (!! :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
-  (defj J36 (!! :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
-  (defj J38 (!! :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
-
-  (defj J41 (!! :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
-  (defj J42 (!! :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
-  (defj J43 (!! :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
-  (defj J50 (!! :jfns "WWW J50 IS UNIMPLEMENTED !!!~%"))
-  (defj J51 (!! :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
-  (defj J64 (!! :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
-  (defj J65 (!! :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
-  (defj J68 (!! :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
-  (defj J71 (!! :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
-  (defj J72 (!! :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
-  (defj J74 (!! :jfns "WWW J74 IS UNIMPLEMENTED !!!~%"))
-  (defj J75 (!! :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
-  (defj J76 (!! :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
-  (defj J78 (!! :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
-
-  ;; Find the nth symbol on list (0)
-  (defj J81 (!! :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
-  (defj J82 (!! :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
-
-  ;; Create a list of n symbols. (n-1) to (0) ???
-  (defj J91 (!! :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
-
-  (defj J111 (!! :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
-  (defj J115 (!! :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
-  (defj J116 (!! :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
-  (defj J124 (!! :jfns "WWW J124 IS UNIMPLEMENTED !!!~%"))
-  (defj J125 (!! :jfns "WWW J125 IS UNIMPLEMENTED !!!~%"))
-  (defj J130 (!! :jfns "WWW J130 IS UNIMPLEMENTED !!!~%"))
-  (defj J133 (!! :jfns "WWW J133 IS UNIMPLEMENTED !!!~%"))
-  (defj J136 (!! :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
-  (defj J137 (!! :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
-  (defj J138 (!! :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
-
-  ;; Tracing
-  (defj J147 (!! :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
-  (defj J148 (!! :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
-  
-  (defj J155 (!! :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
-  (defj J157 (!! :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
-  (defj J160 (!! :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
-  (defj J161 (!! :jfns "WWW J161 IS UNIMPLEMENTED !!!~%"))
-  (defj J176 (!! :jfns "WWW J176 IS UNIMPLEMENTED !!!~%"))
-  (defj J181 (!! :jfns "WWW J181 IS UNIMPLEMENTED !!!~%"))
-  (defj J183 (!! :jfns "WWW J183 IS UNIMPLEMENTED !!!~%"))
-  (defj J184 (!! :jfns "WWW J184 IS UNIMPLEMENTED !!!~%"))
-
-  (defj J6 ;; REVERSE (0) and (1) WWW H1 is not (1)
+  (defj J6 "REVERSE (0) and (1)" ;; WWW H1 is not (1)
       (let ((z (H0)))
 	(setf (H0) (first (H0+)))
 	(setf (first (H0+)) z)))
 
-  (defj J66 
-      ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
-      ;; search of list (1) is made. against (0) (starting with the
-      ;; cell after cell (1) . If (0) is found, J66 does nothing
-      ;; further. If (0) is not found, it is inserted at the end of
-      ;; the list, as in J65. (??? What happens if the list
-      ;; branches??? At the moment this can't do anything sensible
-      ;; with a branching list!)
-      (!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
-    (loop with cell = (cell arg1)
-	  do (cond ((string-equal (cell-symb cell) arg0)
-		    (!! :jfns "J66 found ~s in the list already. No action!~%" arg0)
-		    (return nil))
-		   ((zero? (cell-link cell))
-		    (!! :jfns "J66 hit end, adding ~s to the list!~%" arg0)
-		    (let* ((new-name (new-list-symbol arg1))
-			   (new-cell (make-cell :name new-name :symb arg0 :link "0")))
-		      (setf (cell-link cell) new-name)
-		      (setf (cell new-name) new-cell)
-		      (return t))))
-	  (setf cell (cell (cell-link cell)))))
-
-  (defj J73 ;; Copy list
-      (setf (H0)
-	    (copy-list
-	     (if (stringp arg0) (stack arg0)
-		 (if (listp arg0) arg0
-		     (error "J73 got ARG0=~s" arg0))))))
-
-  (defj J60
+  (defj J60 "LOCATE NEXT SYMBOL AFTER CELL (0)"
       ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
       ;; cell. If a next cell exists (LINK of (0) not a termination
       ;; symbol), then the output (0) is the name of the next cell,
@@ -466,7 +427,7 @@
       ;; data term as a standard IPL cell.
       (setf (h5) "+")
     ;; De-ref symbol to list if necessary
-    (setf arg0 (de-ref-or-die arg0))
+    (setf arg0 (drod arg0))
     (let* ((this-cell arg0)
 	   (link (cell-link this-cell)))
 	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
@@ -475,7 +436,42 @@
 	    (vv (H0) (cell link)) ;; (h5) is already + from above
 	    )))
 
-  (defj J74 ;; Copy List Structure
+  (defj J66 "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
+      ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
+      ;; search of list (1) is made. against (0) (starting with the
+      ;; cell after cell (1) . If (0) is found, J66 does nothing
+      ;; further. If (0) is not found, it is inserted at the end of
+      ;; the list, as in J65. (??? What happens if the list
+      ;; branches??? At the moment this can't do anything sensible
+      ;; with a branching list!)
+      (!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
+    (loop with list-cell = (drod arg1)
+	  with symb = (if (stringp arg0)
+			  arg0
+			  (if (cell? arg0)
+			      (cell-symbol arg0)
+			      (break "Error in J66: ~a should be a symbol or cell!" arg0)))
+	  do
+	  (cond ((string-equal (cell-symb list-cell) symb)
+		 (!! :jfns "J66 found ~s in the list already. No action!~%" arg0)
+		 (return nil))
+		((zero? (cell-link list-cell))
+		 (print "cccc")
+		 (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
+		 (let* ((new-name (new-list-symbol (cell-name list-cell)))
+			(new-cell (make-cell :name new-name :symb symb :link "0")))
+		   (setf (cell-link list-cell) new-name)
+		   (setf (cell new-name) new-cell)
+		   (return (setf (H0) new-cell)))))))
+
+  (defj J73 "Copy list"
+      (setf (H0)
+	    (copy-list
+	     (if (stringp arg0) (stack arg0)
+		 (if (listp arg0) arg0
+		     (error "J73 got ARG0=~s" arg0))))))
+
+  (defj J74 "Copy List Structure"
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
       ;; which are in one-to-one correspondence with the cells of list structure
       ;; (0). All the regional and internal symbols in the cells will be identical
@@ -490,7 +486,7 @@
       (setf (H0) (copy-list-structure (H0)))
       )
 
-  (defj J90
+  (defj J90 "Create a blank cell on H0"
       ;; J90: Get a cell from the available space list, H2, and leave its name in HO.
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
@@ -500,7 +496,7 @@
 	(setf (cell name) cell)
 	(vv "H0" cell)))
 
-  (defj J100
+  (defj J100 "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
       ;; (1) as input. The order is the order on the list, starting with the first
@@ -514,7 +510,7 @@
 	    (pop (H0+))
 	    ))
 
-  (defj J120
+  (defj J120 "COPY (0)"
       ;; COPY (0). The output (0) names a new cell containing the identical
       ;; contents to (0). The name is local if the input (0) is local; other-
       ;; wise, it is internal.
@@ -522,19 +518,20 @@
 	(setf (cell-name new-cell) (new-list-symbol))
 	(setf (H0) new-cell)))
 
-  (defj J151 ;; Print list (0)
+  (defj J151 "Print list (0)"
       (mapcar #'print arg0))
 
-  (defj J154
+  (defj J154 "Clear print line"
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
       ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
       (format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
 
-  (defj J180 ;; READ LINE J180 READLINE. The next record on unit 1W18 is read to
-      ;; line 1W24. (The record is assumed to be BCD, 80 cols.) Column 1 of the
-      ;; record is read into column 1 of the read line, and so forth. H5 is
-      ;; set+. If no record can be read (end-of-file condition), the line is not
-      ;; changed and HS is set - .
+  (defj J180 "READ LINE J180 READLINE"
+    ;; The next record on unit 1W18 is read to line 1W24. (The record
+      ;; is assumed to be BCD, 80 cols.) Column 1 of the record is
+      ;; read into column 1 of the read line, and so forth. H5 is
+      ;; set+. If no record can be read (end-of-file condition), the
+      ;; line is not changed and HS is set - .
       (let ((line (read-line *input-stream* nil nil)))
 	(!! :io "J180 Read:~%~s~%%" line)
 	(cond (line
@@ -641,7 +638,7 @@
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to
-       (1 (setf (s) (cell-name (cell symb))) (go INTERPRET-P))
+       (1 (setf (s) (cell symb)) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
        (2 (setf (s) (cell-symb (cell (cell-name% (cell symb))))) (go INTERPRET-P))
        (3 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
