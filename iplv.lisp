@@ -553,8 +553,8 @@
 
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
-  (prog (cell pq q p symb link jfn-hint)
-     ;; jfn-hint is needed because I can't figure out how to get the
+  (prog (cell pq q p symb link fname-hint)
+     ;; fname-hint is needed because I can't figure out how to get the
      ;; number of arguments a lambda needs in SBCL, and anyway it's
      ;; useful for tracing which jfn we think we're running when all
      ;; we have in hand is the lambda list.
@@ -562,7 +562,7 @@
      (vv "H1" start-cell) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
-     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (jfn-hint = ~s)~%" (h1) jfn-hint)
+     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (fname-hint = ~s)~%" (h1) fname-hint)
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
@@ -570,13 +570,13 @@
      ;; it and then advance
      (when (null (H1)) (break "!!! PROBABLY MISSING A JFN DEFINITION !!!"))
      (when (functionp (h1))
-       (let* ((arglist (getf (gethash jfn-hint *jfn-plists*) 'arglist))
+       (let* ((arglist (getf (gethash fname-hint *jfn-plists*) 'arglist))
 	      (args (if (null arglist) ()
 			(cons (H0)
 			      (loop for arg in (cdr arglist)
 				    as val in (h0+)
 				    collect val)))))
-	 (!! :run ">>>>>>>>>> Calling ~a with: ~a = ~s~%" jfn-hint arglist args)
+	 (!! :run ">>>>>>>>>> Calling ~a with: ~a = ~s~%" fname-hint arglist args)
 	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
@@ -593,17 +593,7 @@
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
-     (!! :run-full "~%-----> At INTERPRET-Q: CELL =~s;" cell)
-     ;; NNN Note that all the following are separate code segments -- we jump
-     ;; around, never passing through to the next section.
-     ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
-     ;; INTERPRET-P.  - Q = 3, 4: Execute monitor action (see ~ 15.0,
-     ;; MONITORSYSTEM) ; take S = SYMB; go to INTERPRET-P.  - Q = 5:
-     ;; Transfer machine control to SYMB (executing primitive); go to
-     ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
-     ;; storage; put location of routine in block into Hl; go to
-     ;; INTERPRET-Q.
-     (!! :run-full "   w/Q = ~s, symb=~s~%" q symb)
+     (!! :run-full "~%-----> At INTERPRET-Q: CELL =~s~%      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
@@ -619,33 +609,22 @@
        )
    INTERPRET-P 
      (!! :run-full "-----> At INTERPRET-P w/P = ~s, (s)=~s~%" p (s))
-     ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
-     ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 ;; Input S (after preserving HO) 
-	(vv "H0" (S)))
-       (2 ;; Output to S (then restore HO)
-	(setf (cell (S)) (H0)) (^^ "H0"))
-       (3 ;; Restore (pop up) S 
-	(^^ (s)))
-       (4 ;; Preserve (push down) S
-	(vv (S)))
-       (5 ;; Replace (0) by S -- Here if S is just a symbol we need to
-	  ;; make a cell to hold it because it's just a list symbol
-	  ;; (string, actually) (But if H0 is already a cell we can
-	  ;; just replace it.)
-	(setf (H0)
-	      (if (cell? (s))
-		  (s)
-		  (if (stringp (s))
-		      (new-symb-cell (s))
-		      (break "Having trouble interpreteing (s)=~s in P=5." (s))))))
-       (6 ;; Copy (0) in S -- This is the opposite of 5, and we need
-	  ;; to unpack the cell into the symbol.
-	(setf (s) (cell-symb (H0))))
-       (7 ;; Branch to S if H5-
-	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
+       (1 (vv "H0" (S)))                    ;; Input S (after preserving HO) 
+       (2 (setf (cell (S)) (H0)) (^^ "H0")) ;; Output to S (then restore HO)
+       (3 (^^ (s)))                         ;; Restore (pop up) S 
+       (4 (vv (S)))                         ;; Preserve (push down) S
+       (5 
+	;; Replace (0) by S -- Here if S is just a symbol we need to
+	;; make a cell to hold it because it's just a list symbol
+	;; (string, actually) (But if H0 is already a cell we can
+	;; just replace it.)
+	(setf (H0) (if (cell? (s)) (s)
+		       (if (stringp (s)) (new-symb-cell (s))
+			   (break "Having trouble interpreteing (s)=~s in P=5." (s))))))
+       (6 (setf (s) (cell-symb (H0))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
+       (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
    TEST-FOR-PRIMITIVE 
@@ -689,7 +668,7 @@
      (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (setf jfn-hint (s))
+     (setf fname-hint (s))
      (vv "H1" (cell (s)))
      (go INTERPRET-Q)
    BRANCH 
