@@ -413,28 +413,29 @@
 	(setf (first (H0+)) z)))
 
   (defj J60 "LOCATE NEXT SYMBOL AFTER CELL (0)"
-      ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
-      ;; cell. If a next cell exists (LINK of (0) not a termination
-      ;; symbol), then the output (0) is the name of the next cell,
-      ;; and H5 is set +. If LINK is a termination symbol, then the
-      ;; output (0) is the input (0), which is the name of the last
-      ;; cell on the list, and H5 is set -. If the next cell is a
-      ;; private termination cell, J60 will work as specified above,
-      ;; but in addition, the private termination cell will be
-      ;; returned to available space and the LINK of the input cell
-      ;; (0) will be changed to hold 0. No test is made to see that
-      ;; (0) is not a data term, and J60 will attempt to interpret a
-      ;; data term as a standard IPL cell.
-      (setf (h5) "+")
+    ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
+    ;; cell. If a next cell exists (LINK of (0) not a termination
+    ;; symbol), then the output (0) is the name of the next cell, and
+    ;; H5 is set +.  (!!! This whole "name" thing is an f'ing lie!
+    ;; It's the actual cell !!!)  If LINK is a termination symbol,
+    ;; then the output (0) is the input (0), which is the name of the
+    ;; last cell on the list, and H5 is set -. If the next cell is a
+    ;; private termination cell, J60 will work as specified above, but
+    ;; in addition, the private termination cell will be returned to
+    ;; available space and the LINK of the input cell (0) will be
+    ;; changed to hold 0. No test is made to see that (0) is not a
+    ;; data term, and J60 will attempt to interpret a data term as a
+    ;; standard IPL cell.
+    (setf (h5) "+")
     ;; De-ref symbol to list if necessary
-    (setf arg0 (drod arg0))
+    (setf arg0 (drod arg0)) 
     (let* ((this-cell arg0)
 	   (link (cell-link this-cell)))
-	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
-	(if (zero? link)
-	    (setf (h5) "-")
-	    (vv (H0) (cell link)) ;; (h5) is already + from above
-	    )))
+      (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
+      (if (zero? link)
+	  (setf (h5) "-")
+	  (vv (H0) (cell link)) ;; (h5) is already + from above
+	  )))
 
   (defj J66 "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
       ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
@@ -449,20 +450,21 @@
 	  with symb = (if (stringp arg0)
 			  arg0
 			  (if (cell? arg0)
-			      (cell-symbol arg0)
+			      (cell-symb arg0)
 			      (break "Error in J66: ~a should be a symbol or cell!" arg0)))
 	  do
 	  (cond ((string-equal (cell-symb list-cell) symb)
-		 (!! :jfns "J66 found ~s in the list already. No action!~%" arg0)
+		 (!! :jfns "J66 found ~s in the list already. No action!~%" symb)
 		 (return nil))
 		((zero? (cell-link list-cell))
-		 (print "cccc")
 		 (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
 		 (let* ((new-name (new-list-symbol (cell-name list-cell)))
 			(new-cell (make-cell :name new-name :symb symb :link "0")))
 		   (setf (cell-link list-cell) new-name)
 		   (setf (cell new-name) new-cell)
-		   (return (setf (H0) new-cell)))))))
+		   (return t))))
+	  ;; Move to next cell if nothnig above returned out
+	  (setf list-cell (cell (cell-link list-cell)))))
 
   (defj J73 "Copy list"
       (setf (H0)
@@ -566,6 +568,13 @@
 	(setf (cell-link new-cell) (copy-list-structure (cell-link cell)))
 	)))
 	
+(defun prlist (cell)
+  (setf cell (drod cell))
+  (loop do (print cell) (terpri)
+	(let ((link (cell-link cell)))
+	  (if (zero? link) (return :end-of-list))
+	  (setf cell (cell link)))))
+
 ;;; ===================================================================
 ;;; This is the core of the emulator. It directly implements "3.15 THE
 ;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual. This is actually kinda
@@ -640,7 +649,7 @@
        ;; 1 Take the name the symbol is pointing to
        (1 (setf (s) (cell symb)) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
-       (2 (setf (s) (cell-symb (cell (cell-name% (cell symb))))) (go INTERPRET-P))
+       (2 (setf (s) (cell (cell-name% (cell symb)))) (go INTERPRET-P))
        (3 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
