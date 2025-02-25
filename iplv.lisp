@@ -705,19 +705,15 @@
    ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK")
      (!! :run-full "In ADVANCE(ADVANCE-W/FORCED-LINK): LINK = ~s~%" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
-     (if (zero? link)
-	 (if (break "(null (h1))") ;; WWW THIS CAN'T BE RIGHT !!!
-	     (go ASCEND)
-	     (^^ "H1"))
-	 ;; Note that if there is a link to a different function
-	 ;; (commonly J31, which resets W0 and W1), then when THAT
-	 ;; function terminates the whole prog sequence
-	 ;; ascends. This is a somewhat confusing yet common way to
-	 ;; end a function, that is, by branching off to a J
-	 ;; function which, when it completes, pops to whereever its
-	 ;; caller came from.
-	 (setf (h1) (cell link))
-	 )
+     (if (zero? link) (go ASCEND))
+     ;; Note that if there is a link to a different function
+     ;; (commonly J31, which resets W0 and W1), then when THAT
+     ;; function terminates the whole prog sequence
+     ;; ascends. This is a somewhat confusing yet common way to
+     ;; end a function, that is, by branching off to a J
+     ;; function which, when it completes, pops to whereever its
+     ;; caller came from.
+     (setf (h1) (cell link))
      (go INTERPRET-Q)
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
