@@ -760,6 +760,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:pre-exec-dump :load :run :jfns :run-full :io)) ;; :pre-exec-dump :load :run :jfns :run-full :io
+(setf *!!list* '(:load :run :jfns)) ;; :pre-exec-dump :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
