@@ -667,15 +667,19 @@
        (2 ;; Output to S (then restore HO)
 	(setf (cell (S)) (H0)) (^^ "H0"))
        (3 ;; Restore (pop up) S 
-	(^^ "S"))
+	(^^ (s)))
        (4 ;; Preserve (push down) S
-	(vv "S"))
-       (5 ;; Replace (0) by S -- Here we need to make a cell to hold S
-	;; because it's just a list symbol (string, actually)
-	;; (But if H0 is already a cell we can just replace it.)
-	(if (cell? (H0))
-	    (setf (cell-symb (H0)) (S))
-	    (setf (H0) (new-symb-cell (S)))))
+	(vv (S)))
+       (5 ;; Replace (0) by S -- Here if S is just a symbol we need to
+	  ;; make a cell to hold it because it's just a list symbol
+	  ;; (string, actually) (But if H0 is already a cell we can
+	  ;; just replace it.)
+	(setf (H0)
+	      (if (cell? (s))
+		  (s)
+		  (if (stringp (s))
+		      (new-symb-cell (s))
+		      (break "Having trouble interpreteing (s)=~s in P=5." (s))))))
        (6 ;; Copy (0) in S -- This is the opposite of 5, and we need
 	  ;; to unpack the cell into the symbol.
 	(setf (s) (cell-symb (H0))))
@@ -698,7 +702,8 @@
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (cell-link cell))
-     (!! :run-full "In ADVANCE: LINK = ~s~%" link)
+   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK")
+     (!! :run-full "In ADVANCE(ADVANCE-W/FORCED-LINK): LINK = ~s~%" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link)
 	 (if (break "(null (h1))") ;; WWW THIS CAN'T BE RIGHT !!!
@@ -733,7 +738,7 @@
      (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
-     (when (string-equal (h5) "-") (setf link (s)))
+     (when (string-equal (h5) "-") (setf link (s)) (go ADVANCE-W/FORCED-LINK))
      (go ADVANCE)
      ))
 
