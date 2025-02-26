@@ -211,7 +211,6 @@
 	  )))
 
 (defun save-cells (cells load-mode)
-  (setf load-mode :data) ;; ****************************************************************
   ;; Once we have the thing completely in hand, we change the local
   ;; symbols to FN_9-... and save those as separate symtab
   ;; entries. This allows the code to branch, and also run through,
@@ -235,22 +234,21 @@
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
       (convert-local-symbols cells local-symbols.new-names)
-      (setf (gethash top-name *symtab*) (car cells)) ;; ***********************************************
+      (setf (gethash top-name *symtab*) (car cells)) 
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
-      (when (eq :data load-mode)
-	;; Loop through the whole list and create aa local symbol for
-	;; every cell that doesn't already have one. This has to do a
-	;; messy look ahead.
-	(loop for (this-cell next-cell) on cells
-	      as this-link = (cell-link this-cell)
-	      as next-name = (when next-cell (cell-name next-cell))
-	      when next-cell ;; This usually isn't needed anyway bcs there should be a 0
-	      do (if (zero? this-link)
-		     (if (zero? next-name)
-			 (let ((new-symbol (new-list-symbol top-name)))
-			   (setf (cell-name next-cell) new-symbol)
-			   (setf (cell-link this-cell) new-symbol))
-			 (setf (cell-link this-cell) next-name))))))
+      ;; Loop through the whole list and create aa local symbol for
+      ;; every cell that doesn't already have one. This has to do a
+      ;; messy look ahead.
+      (loop for (this-cell next-cell) on cells
+	    as this-link = (cell-link this-cell)
+	    as next-name = (when next-cell (cell-name next-cell))
+	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
+	    do (if (zero? this-link)
+		   (if (zero? next-name)
+		       (let ((new-symbol (new-list-symbol top-name)))
+			 (setf (cell-name next-cell) new-symbol)
+			 (setf (cell-link this-cell) new-symbol))
+		       (setf (cell-link this-cell) next-name)))))
     (save-sublists cells)))
 
 (defun new-list-symbol (&optional (prefix "")) (format nil "~a~a" prefix (gensym "+")))
@@ -310,7 +308,7 @@
 (defvar *systacks* (make-hash-table :test #'equal))
 
 (defun create-system-cells ()
-  (loop for name in *system-cells*
+  (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
 	do (setf (cell name) (make-cell :name name))
 	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
 	(format t "Created system cell: ~s and its stack.~%" name))
@@ -354,7 +352,63 @@
 ;;; that doesn't harm anything. (But I tried unwrapping it, and
 ;;; something went terribly wrong!)
 
+#|
+
+("J31" . 14)
+("J32" . 4)
+("J33" . 11)
+("J34" . 7)
+("J35" . 3)
+("J36" . 3)
+("J37" . 1)
+("J38" . 12)
+
+("J41" . 5)
+("J42" . 4)
+("J43" . 4)
+("J44" . 2)
+("J45" . 2)
+("J46" . 1)
+("J47" . 1)
+("J48" . 2)
+
+("J51" . 4)
+("J52" . 1)
+("J53" . 1)
+
+
+("J81" . 36)
+("J82" . 10)
+
+("J90" . 12)
+("J91" . 4)
+("J92" . 1)
+("J93" . 1)
+
+????("J" . 2)????
+
+
+("J60" . 35) ("J100" . 26) ("J71" . 22) ("J136" . 17) ("J10" . 17)
+("J155" . 17) ("J72" . 16) ("J154" . 16) ("J120" . 16) ("J5" . 15)
+("J2" . 15) ("J11" . 15)  ("J161" . 12) ("J50" . 12) ("J160" . 11)
+("J9" . 11) ("J157" . 10) ("J64" . 9)  ("J74" . 6) ("J8" . 6)
+("J116" . 6) ("J7" . 6) ("J14" . 5) ("J133" . 5) ("J18" . 5) ("J68" . 5) 
+("J125" . 5) ("J124" . 5)  ("J17" . 4) ("J19" . 4)   ("J73" . 4) 
+("J65" . 4) ("J75" . 4) ("J78" . 4)  ("J184" . 3) ("J111" . 3)
+("J138" . 3) ("J137" . 3) ("J66" . 3) ("J115" . 3) ("J76" . 3) 
+("J130" . 2) ("J183" . 2) ("J182" . 2) ("J21" . 2) ("J114" . 2)
+("J80" . 2) ("J121" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
+("J166" . 2) ("J0" . 2) ("J1" . 1) ("J79" . 1)  ("J156" . 1)
+("J180" . 1) ("J181" . 1) ("J186" . 1) ("J62" . 1)  ("J110" . 1)
+("J147" . 1) 
+
+|#
+
 (defun setup-j-fns ()
+
+  (defj J2 (agr0 arg1) "TEST (0) = (1)?" (setf (h5) (if (equal arg0 arg1) "+" "-")))
+  (defj J3 () "SET H5 -" (setf (H5) "-"))
+  (defj J4 () "SET H5 +" (setf (H5) "+"))
 
   (defj J6 () "REVERSE (0) and (1)" ;; WWW H1 is not (1)
       (let ((z (H0)))
@@ -704,5 +758,5 @@
 (untrace)
 (trace ipl-eval run)
 (setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io
-;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
+(load-ipl "LTFixed.lisp")
+;(load-ipl "F1.lisp")
