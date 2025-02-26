@@ -470,7 +470,7 @@
 	(setf (H0) new-cell)))
 
   (defj J151 (arg0) "Print list (0)"
-      (prlist arg0))
+	 (prlist arg0))
 
   (defj J154 () "Clear print line"
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -520,10 +520,13 @@
 	
 (defun prlist (cell)
   (setf cell (drod cell))
-  (loop do (print cell) (terpri)
+  (format t "~%+---------------------------------------------------------------------+~%")
+  (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
-	  (setf cell (cell link)))))
+	  (setf cell (cell link))))
+  (format t "+---------------------------------------------------------------------+~%")
+  )
 
 ;;; ===================================================================
 ;;; This is the core of the emulator. It directly implements "3.15 THE
@@ -536,7 +539,9 @@
 
 (defun run (start-symb)
   (initialize-machine)
-  (ipl-eval (cell start-symb)))
+  (ipl-eval (cell start-symb))
+  (report-system-cells)
+  )
 
 (defun initialize-machine ()
   (create-system-cells)
@@ -641,9 +646,9 @@
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
-     (setf link (cell-link cell))
-   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK")
-     (!! :run-full "In ADVANCE(ADVANCE-W/FORCED-LINK): LINK = ~s~%" link)
+     ;; (setf link (cell-link cell))
+     (setf link (cell-link (H1)))
+   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link) (go ASCEND))
      ;; Note that if there is a link to a different function
@@ -658,11 +663,11 @@
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
    ASCEND 
+     (!! :run-full "-----> At ASCEND w/H1 = ~s~%" (h1))
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (^^ "H1")
-     (!! :run-full "-----> At ASCEND w/H1 = ~s~%" (h1))
      (go ADVANCE)
    DESCEND 
      (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
@@ -701,6 +706,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:pre-exec-dump :load :run :jfns :run-full :io)) ;; :pre-exec-dump :load :run :jfns :run-full :io
+(setf *!!list* '(:run)) ;; :pre-exec-dump :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
