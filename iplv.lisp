@@ -345,7 +345,7 @@
 
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
-     (setf (gethash uname *jfn-plists*) '(arglist ,args))
+     (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
      (setf (gethash uname *symtab*)
 	   (lambda ,args
 	     ,@forms))))
@@ -575,21 +575,19 @@
      ;; it and then advance
      (when (null (H1)) (break "!!! PROBABLY MISSING A JFN DEFINITION !!!"))
      (when (functionp (h1))
-       (let* ((arglist (getf (gethash fname-hint *jfn-plists*) 'arglist))
+       (let* ((arglist (second (function-lambda-expression (H1))))
 	      (args (if (null arglist) ()
 			(cons (H0)
 			      (loop for arg in (cdr arglist)
 				    as val in (h0+)
 				    collect val)))))
-	 (!! :run ">>>>>>>>>> Calling ~a with: ~a = ~s~%" fname-hint arglist args)
+	 (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
+	     fname-hint (getf (gethash fname-hint *jfn-plists*) 'explanation) arglist args)
 	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
-     (when (member :pre-exec-dump *!!list*)
-       (format t "~%(( STATE BEFORE NEXT EXEC ))~%")
-       (report-system-cells))
      (!! :run "~%>>>>>>>>>> Executing: ~s~%" cell)
      (setf *trace-intruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -646,7 +644,6 @@
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
-     ;; (setf link (cell-link cell))
      (setf link (cell-link (H1)))
    ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
@@ -706,6 +703,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run)) ;; :pre-exec-dump :load :run :jfns :run-full :io
+(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
