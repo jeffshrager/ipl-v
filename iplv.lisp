@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; FFF !!! MAKE-CELL has to store it also!
+
 ;;; Things not implemented: Aux storage, various J functions, 
 
 ;;; FFF Maybe use Lisp lists instead of the morass of symbol table pointers that
@@ -32,7 +34,8 @@
   )
 
 (defun new-symb-cell (symbol &optional (prefix "c"))
-  (make-cell :name (symbol-name (gensym prefix)) :symb symbol))
+  (let ((name (symbol-name (gensym prefix))))
+    (setf (cell name) (make-cell :name name :symb symbol))) 
 
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
@@ -354,26 +357,6 @@
 
 #|
 
-("J21" . 2) 
-
-("J31" . 14)
-("J32" . 4)
-("J33" . 11)
-("J34" . 7)
-("J35" . 3)
-("J36" . 3)
-("J37" . 1)
-("J38" . 12)
-
-("J41" . 5)
-("J42" . 4)
-("J43" . 4)
-("J44" . 2)
-("J45" . 2)
-("J46" . 1)
-("J47" . 1)
-("J48" . 2)
-
 ("J51" . 4)
 ("J52" . 1)
 ("J53" . 1)
@@ -396,7 +379,7 @@
 ("J65" . 4) ("J75" . 4) ("J78" . 4)  ("J184" . 3) ("J111" . 3)
 ("J138" . 3) ("J137" . 3) ("J115" . 3) ("J76" . 3) 
 ("J130" . 2) ("J183" . 2) ("J182" . 2) ("J114" . 2)
-("J80" . 2) ("J121" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
+("J80" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
 ("J166" . 2) ("J0" . 2) ("J1" . 1) ("J79" . 1)  ("J156" . 1)
 ("J181" . 1) ("J186" . 1) ("J62" . 1)  ("J110" . 1)
 ("J147" . 1) 
@@ -418,6 +401,50 @@
 
   ;; I don't think that this is necessary as we don't need to do our own GC.
   (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC."))
+
+  ;; FFF Macrofiy these!!!
+
+  (defj J20 () "MOVE(0)-(n) into WO-n [J20: n=0]" (J2n=move-0-to-n-into-w0-wn 0))
+  (defj J21 () "MOVE(0)-(n) into WO-n [J21: n=1]" (J2n=move-0-to-n-into-w0-wn 1))
+  (defj J22 () "MOVE(0)-(n) into WO-n [J22: n=2]" (J2n=move-0-to-n-into-w0-wn 2))
+  (defj J23 () "MOVE(0)-(n) into WO-n [J23: n=3]" (J2n=move-0-to-n-into-w0-wn 3))
+  (defj J24 () "MOVE(0)-(n) into WO-n [J24: n=4]" (J2n=move-0-to-n-into-w0-wn 4))
+  (defj J25 () "MOVE(0)-(n) into WO-n [J25: n=5]" (J2n=move-0-to-n-into-w0-wn 5))
+  (defj J26 () "MOVE(0)-(n) into WO-n [J26: n=6]" (J2n=move-0-to-n-into-w0-wn 6))
+  (defj J27 () "MOVE(0)-(n) into WO-n [J27: n=7]" (J2n=move-0-to-n-into-w0-wn 7))
+  (defj J28 () "MOVE(0)-(n) into WO-n [J28: n=8]" (J2n=move-0-to-n-into-w0-wn 8))
+  (defj J29 () "MOVE(0)-(n) into WO-n [J29: n=9]" (J2n=move-0-to-n-into-w0-wn 9))
+  (defun J2n=move-0-to-n-into-w0-wn (n)
+    (setf (cell "W0") (H0))
+    (loop for nn from 1 to n ;; Won't do anything if n=0
+	  as val in (H0+)
+	  do (setf (cell (format nil "W~a" nn)) val)))
+
+  (defj J30 () "RESTORE W0-W0" (J3n=restore-wn 0))
+  (defj J31 () "RESTORE W0-W1" (J3n=restore-wn 1))
+  (defj J32 () "RESTORE W0-W2" (J3n=restore-wn 2))
+  (defj J33 () "RESTORE W0-W3" (J3n=restore-wn 3))
+  (defj J34 () "RESTORE W0-W4" (J3n=restore-wn 4))
+  (defj J35 () "RESTORE W0-W5" (J3n=restore-wn 5))
+  (defj J36 () "RESTORE W0-W6" (J3n=restore-wn 6))
+  (defj J37 () "RESTORE W0-W7" (J3n=restore-wn 7))
+  (defj J38 () "RESTORE W0-W8" (J3n=restore-wn 8))
+  (defj J39 () "RESTORE W0-W9" (J3n=restore-wn 9))
+  (defun J3n=restore-wn (n)
+    (loop for nn from 0 to n do (^^ (format nil "W~a" nn))))
+
+  (defj J40 () "RESTORE W0-W0" (J4n=restore-wn 0))
+  (defj J41 () "RESTORE W0-W1" (J4n=restore-wn 1))
+  (defj J42 () "RESTORE W0-W2" (J4n=restore-wn 2))
+  (defj J43 () "RESTORE W0-W3" (J4n=restore-wn 3))
+  (defj J44 () "RESTORE W0-W4" (J4n=restore-wn 4))
+  (defj J45 () "RESTORE W0-W5" (J4n=restore-wn 5))
+  (defj J46 () "RESTORE W0-W6" (J4n=restore-wn 6))
+  (defj J47 () "RESTORE W0-W7" (J4n=restore-wn 7))
+  (defj J48 () "RESTORE W0-W8" (J4n=restore-wn 8))
+  (defj J49 () "RESTORE W0-W9" (J4n=restore-wn 9))
+  (defun J4n=preserve-wn (n)
+    (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
 
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
     ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
@@ -466,19 +493,54 @@
 		((zero? (cell-link list-cell))
 		 (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
 		 (let* ((new-name (new-list-symbol (cell-name list-cell)))
-			(new-cell (make-cell :name new-name :symb symb :link "0")))
+			(new-cell (make-cell! :name new-name :symb symb :link "0")))
 		   (setf (cell-link list-cell) new-name)
 		   (setf (cell new-name) new-cell)
 		   (return t))))
 	  ;; Move to next cell if nothnig above returned out
 	  (setf list-cell (cell (cell-link list-cell)))))
 
-  (defj J73 (arg0) "Copy list"
-      (setf (H0)
-	    (copy-list
-	     (if (stringp arg0) (stack arg0)
-		 (if (listp arg0) arg0
-		     (error "J73 got ARG0=~s" arg0))))))
+  (defj J73 (arg0) "COPYLIST (0)"
+	;; COPYLIST (0). The output (0) names a new list,with the
+	;; identical symbols in the cells as are in the corresponding
+	;; cells of list (0), including the head. If (O) is the name
+	;; of a list cell, rather that [SIC: than] a head, the output
+	;; (0) will be a copy of the remainder of the list from (0)
+	;; on. [This is extremely weird!] (Nothing else is copied, not
+	;; even the description list of (0), if it exists. [In which
+	;; situation?]) The name is local if the input (0) is local;
+	;; otherwise, it is internal.
+	(let* ((old-cell (drod arg0))
+	       (head-name (cell-name old-head)))
+	  (loop for (this-cell . next-cell) on 
+		(loop as old-link = (cell-link old-cell)
+		      as old-symb = (cell-symb old-cell)
+		      as new-name = (new-list-symbol head-name)
+		      with collector = nil
+		      until (zero? old-link)
+		      do (push (new-cell :name new-name :symb old-symb) collector)
+		      finally (return (cons (new-cell 
+
+
+
+		until (null next-cell)
+		do (setf (cell-link this-cell) (cell-name next-cell))
+		
+	  
+
+	       (new-head (new-symb-cell (cell-symb old-cell))
+	(loop with old-name = (cell-name as old-cell = (drod arg0) ;; ??? We may need to switch on this ??? [Per weirdness in comment.]
+	      as new-cell = 
+	      as old-link = (cell-link old-cell)
+	      as pro-link = (new-list-symbol
+	      with top? = t
+	      do 
+	      (when top? (setf (H0) new-cell) (setf top? nil)) ;; Only do this once with the top cell!
+	      (when (zero? old-link) (return (setf (cell-link new-cell) "0")))
+	      
+
+
+	       
 
   (defj J74 (arg0) "Copy List Structure"
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -526,6 +588,9 @@
       (let ((new-cell (copy-cell (H0))))
 	(setf (cell-name new-cell) (new-list-symbol))
 	(setf (H0) new-cell)))
+
+  (defj J121 () "Set (0) identical to (1), leave (0)"
+	(setf (H0) (first (H0+))))
 
   (defj J151 (arg0) "Print list (0)"
 	 (prlist arg0))
@@ -761,6 +826,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io
+(setf *!!list* '(:run-full :run :jfns)) ;; :load :run :jfns :run-full :io
 (load-ipl "LTFixed.lisp")
 ;(load-ipl "F1.lisp")
