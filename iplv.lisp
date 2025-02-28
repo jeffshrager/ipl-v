@@ -335,11 +335,9 @@
 
 ;;; ===================================================================
 ;;; J-Functions. 
-;;; ===================================================================
 
-;;; FFF Make this take the relevant number of args and pop them, and
-;;; push the relevant number of results on H0 in order to regluarize
-;;; the argument back-and-forth and H0 management mess.
+;;; (WWW You's think we could pop the input args off H0 automatically,
+;;; but some IPL code leave the input args in place on purpose.)
 
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
@@ -347,10 +345,6 @@
      (setf (gethash uname *symtab*)
 	   (lambda ,args
 	     ,@forms))))
-
-;;; FFF This probably doesn't have to be done at run-time, although
-;;; that doesn't harm anything. (But I tried unwrapping it, and
-;;; something went terribly wrong!)
 
 #|
 
@@ -403,6 +397,10 @@
 ("J147" . 1) 
 
 |#
+
+;;; FFF This probably doesn't have to be done at run-time, although
+;;; that doesn't harm anything. (But I tried unwrapping it, and
+;;; something went terribly wrong!)
 
 (defun setup-j-fns ()
 
@@ -546,6 +544,9 @@
 
 )
 
+;;; ===================================================================
+;;; JFn Utilities
+
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
 ;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
 ;;; internal structure results from the symb and links pointing to other named
@@ -582,14 +583,14 @@
   (format t "+---------------------------------------------------------------------+~%")
   )
 
-;;; ===================================================================
-;;; This is the core of the emulator. It directly implements "3.15 THE
-;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual. This is actually kinda
-;;; ridiculous with the whole H1 descending and ascending mess. A "modern"
-;;; evaluator would simply recurse. Maybe when I get sick enough of this mess,
-;;; I'll recode it correctly. (IPL-EVAL can actually be called recursively...but
-;;; the caller has to keep track of H1.
-;;; ===================================================================
+;;; =========================================================================
+;;; Emulator core
+
+;;; Directly implements "3.15 THE INTERPRETATION CYCLE", pg. 164 of
+;;; the IPL-V manual. It can actually be called recursively...but the
+;;; caller has to keep track of H1. IPL code implements recursion "the
+;;; hard way", so there's generally no need to call this fn
+;;; recursively.
 
 (defun run (start-symb)
   (initialize-machine)
@@ -754,6 +755,18 @@
 	  (if (= 1 l)
 	      (case pq? (:p 0) (:q (parse-integer val)))
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
+
+;;; =========================================================================
+;;; Utilities
+
+(defun core-dump (table)
+  (format t "~a contains ~a entries:~%" table (hash-table-count table))
+  (loop for key being the hash-keys of table
+	using (hash-value value)
+	do (format t "~s => ~s~%" key value)))
+
+;;; =========================================================================
+;;; Test calls
 
 (untrace)
 (trace ipl-eval run)
