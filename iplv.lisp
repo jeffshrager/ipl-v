@@ -1,15 +1,6 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-;;; Last commit confirmed to run F1 correctly is 34a7a74 (~202502280903)
-
-;;; Things not implemented: Aux storage, various J functions, 
-
-;;; FFF Maybe use Lisp lists instead of the morass of symbol table pointers that
-;;; require a mess of renaming.
-
-;;; FFF Note that the dumper put multiple header lines in (:comments :type :name
-;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
-;;; rather than just skipping the first line.
+;;; Last commit confirmed to run F1 correctly is ebc4887 (~20250228@0919)
 
 ;;; The whole symbol v. cell thing in IPL is a compelete mess. All
 ;;; symbols can be addresses of cells -- in fact they all are -- but
@@ -19,6 +10,7 @@
 ;;; hand. And then there are the special symbols (H0, etc) that have a
 ;;; special push down mechanism. Ugh.
 
+;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (cell (:print-function print-cell))
@@ -56,8 +48,7 @@
 	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments cell)))))
 
 ;;; ===================================================================
-;;; Symbol Table (and Stacks)
-;;; ===================================================================
+;;; Storage and Special Symbols
 
 (defvar *symtab* (make-hash-table :test #'equal))
 
@@ -87,9 +78,6 @@
 (defmacro S () `(cell "S"))
 (defmacro S+ () `(stack "S"))
 
-(defun ListX (l) ;; Get a list from it's name if necessary
-  (if (listp l) l (stack l)))
-
 (defun cell? (cell?)
   (eq 'cell (type-of cell?)))
 
@@ -98,16 +86,16 @@
 (defun cell-name% (cell-or-name)
   (cell-name (drod cell-or-name)))
 
+(defvar *trace-instruction* nil)
+
 (defun drod (cell-or-name) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (if (cell? cell) cell
-      (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-intruction*))))
+      (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*))))
 
 ;;; ===================================================================
-;;; The Loader simply loads everything created by tsv2alist.py
-;;; into *symtab*. Nb. You should end with a type 5 cell to execute!
-;;; ===================================================================
+;;; Debugging Utils
 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 
@@ -138,13 +126,17 @@
 		 ((loop for entry in stack if (illegal-value? entry) do (return t))
 		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf break t))
 		 )
-	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *trace-intruction*))))
+	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *trace-instruction*))))
 
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
 
 ;;; ===================================================================
 ;;; Loader (loads from files converted by tsv2lisp.py)
+
+;;; FFF Note that the dumper puts multiple header lines in (:comments :type :name
+;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
+;;; rather than just skipping the first line.
 
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -383,7 +375,7 @@
 
 (defun setup-j-fns ()
 
-  (defj J2 (agr0 arg1) "TEST (0) = (1)?" (setf (h5) (if (equal arg0 arg1) "+" "-")))
+  (defj J2 (arg0 arg1) "TEST (0) = (1)?" (setf (h5) (if (equal arg0 arg1) "+" "-")))
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
 
@@ -421,16 +413,16 @@
   (defj J38 () "RESTORE W0-W8" (J3n=restore-wn 8))
   (defj J39 () "RESTORE W0-W9" (J3n=restore-wn 9))
 
-  (defj J40 () "RESTORE W0-W0" (J4n=restore-wn 0))
-  (defj J41 () "RESTORE W0-W1" (J4n=restore-wn 1))
-  (defj J42 () "RESTORE W0-W2" (J4n=restore-wn 2))
-  (defj J43 () "RESTORE W0-W3" (J4n=restore-wn 3))
-  (defj J44 () "RESTORE W0-W4" (J4n=restore-wn 4))
-  (defj J45 () "RESTORE W0-W5" (J4n=restore-wn 5))
-  (defj J46 () "RESTORE W0-W6" (J4n=restore-wn 6))
-  (defj J47 () "RESTORE W0-W7" (J4n=restore-wn 7))
-  (defj J48 () "RESTORE W0-W8" (J4n=restore-wn 8))
-  (defj J49 () "RESTORE W0-W9" (J4n=restore-wn 9))
+  (defj J40 () "PRESERVE W0-W0" (J4n=preserve-wn 0))
+  (defj J41 () "PRESERVE W0-W1" (J4n=preserve-wn 1))
+  (defj J42 () "PRESERVE W0-W2" (J4n=preserve-wn 2))
+  (defj J43 () "PRESERVE W0-W3" (J4n=preserve-wn 3))
+  (defj J44 () "PRESERVE W0-W4" (J4n=preserve-wn 4))
+  (defj J45 () "PRESERVE W0-W5" (J4n=preserve-wn 5))
+  (defj J46 () "PRESERVE W0-W6" (J4n=preserve-wn 6))
+  (defj J47 () "PRESERVE W0-W7" (J4n=preserve-wn 7))
+  (defj J48 () "PRESERVE W0-W8" (J4n=preserve-wn 8))
+  (defj J49 () "PRESERVE W0-W9" (J4n=preserve-wn 9))
 
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
     ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
@@ -497,7 +489,7 @@
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
       ;; which are in one-to-one correspondence with the cells of list structure
       ;; (0). All the regional and internal symbols in the cells will be identical
-      ;; to the symbols in the correspon- ding cells of (0), as will the contents of
+      ;; to the symbols in the corresponding cells of (0), as will the contents of
       ;; data terms. There will be new local symbols, since these are the names of
       ;; the sublists of the new structure. Description lists will be copied, if
       ;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
@@ -505,7 +497,7 @@
       ;; remains unaffected. The output (0) names the new list structure. It is
       ;; local if the input (0) is local; It is internal otherwise.
       (!! :jfns "J74 is copying list: ~s~%" (H0))
-      (setf (H0) (copy-list-structure (H0)))
+      (setf (H0) (copy-list-structure arg0))
       )
 
   (defj J90 () "Create a blank cell on H0"
@@ -525,7 +517,7 @@
       ;; list cell. H5 is always set + at the start of the subprocess. J100 will
       ;; move in list (1) if it is on auxiliary.
       (loop with subcall = (H0)
-       	    for elt in (listX arg1)
+       	    for elt in (break "(listX arg1) isn't implemented")
        	    do
 	    (push elt (H0+))
 	    (ipl-eval arg0)
@@ -566,17 +558,17 @@
 ;;; ===================================================================
 ;;; JFn Utilities
 
-  (defun J2n=move-0-to-n-into-w0-wn (n)
-    (setf (cell "W0") (H0))
-    (loop for nn from 1 to n ;; Won't do anything if n=0
-	  as val in (H0+)
-	  do (setf (cell (format nil "W~a" nn)) val)))
+(defun J2n=move-0-to-n-into-w0-wn (n)
+  (setf (cell "W0") (H0))
+  (loop for nn from 1 to n ;; Won't do anything if n=0
+	as val in (H0+)
+	do (setf (cell (format nil "W~a" nn)) val)))
 
-  (defun J3n=restore-wn (n)
-    (loop for nn from 0 to n do (^^ (format nil "W~a" nn))))
+(defun J3n=restore-wn (n)
+  (loop for nn from 0 to n do (^^ (format nil "W~a" nn))))
 
-  (defun J4n=preserve-wn (n)
-    (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
+(defun J4n=preserve-wn (n)
+  (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
 
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
 ;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
@@ -640,8 +632,6 @@
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
-(defvar *trace-intruction* nil)
-
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
   (prog (cell pq q p symb link fname-hint)
@@ -675,7 +665,7 @@
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
      (!! :run "~%>>>>>>>>>> Executing: ~s~%" cell)
-     (setf *trace-intruction* cell) ;; For tracing and error reporting
+     (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -801,6 +791,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io
+(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
