@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; Last commit confirmed to run F1 correctly is 34a7a74 (~202502280903)
+
 ;;; Things not implemented: Aux storage, various J functions, 
 
 ;;; FFF Maybe use Lisp lists instead of the morass of symbol table pointers that
@@ -141,6 +143,9 @@
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
 
+;;; ===================================================================
+;;; Loader (loads from files converted by tsv2lisp.py)
+
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
 
@@ -237,8 +242,7 @@
       (setf (gethash top-name *symtab*) (car cells)) 
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create aa local symbol for
-      ;; every cell that doesn't already have one. This has to do a
-      ;; messy look ahead.
+      ;; every cell that doesn't already have one. 
       (loop for (this-cell next-cell) on cells
 	    as this-link = (cell-link this-cell)
 	    as next-name = (when next-cell (cell-name next-cell))
@@ -249,16 +253,15 @@
 			 (setf (cell-name next-cell) new-symbol)
 			 (setf (cell-link this-cell) new-symbol))
 		       (setf (cell-link this-cell) next-name)))))
-    (save-sublists cells)))
+    (store-cells cells)))
 
 (defun new-list-symbol (&optional (prefix "")) (format nil "~a~a" prefix (gensym "+")))
 
-(defun save-sublists (l)
+(defun store-cells (l)
     (loop for cells on l
 	  as name = (cell-name (car cells))
 	  unless (zero? name)
-	  do (setf (gethash name *symtab*) (car cells)) ;; ***************************************************
-	  (!! :load "Saved sublist: ~s~%" name)))
+	  do (setf (gethash name *symtab*) (car cells))))
 
 (defun convert-local-symbols (cells local-symbols.new-names)
   (labels ((replace-symbols (cell accname.accessor)
@@ -694,7 +697,7 @@
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
      (when (string-equal (cell-symb (h1)) "exit")
-       (!! :run-full "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
+       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (^^ "H1") (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
@@ -770,6 +773,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io
+(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
