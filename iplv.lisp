@@ -229,6 +229,7 @@
   ;; crap -- which is, of course, how the actual computer works, where
   ;; core is the symtab! So for the sake of a bit of cleanliness we
   ;; create a spaghetti monster out of the emulator!)
+  (declare (ignore load-mode)) ;; **************** WILL BE NEEDED LATER ***************
   (when cells
     (let* ((top-name (cell-name (car cells)))
 	   (local-symbols.new-names
@@ -351,59 +352,34 @@
 
 #|
 
-("J31" . 14)
-("J32" . 4)
-("J33" . 11)
-("J34" . 7)
-("J35" . 3)
-("J36" . 3)
-("J37" . 1)
-("J38" . 12)
-
-("J41" . 5)
-("J42" . 4)
-("J43" . 4)
-("J44" . 2)
-("J45" . 2)
-("J46" . 1)
-("J47" . 1)
-("J48" . 2)
-
 ("J51" . 4)
 ("J52" . 1)
 ("J53" . 1)
 
-
 ("J81" . 36)
 ("J82" . 10)
 
-("J90" . 12)
 ("J91" . 4)
 ("J92" . 1)
 ("J93" . 1)
 
 ????("J" . 2)????
 
-
-("J60" . 35) ("J100" . 26) ("J71" . 22) ("J136" . 17) ("J10" . 17)
-("J155" . 17) ("J72" . 16) ("J154" . 16) ("J120" . 16) ("J5" . 15)
+("J100" . 26) ("J71" . 22) ("J136" . 17) ("J10" . 17)
+("J155" . 17) ("J72" . 16) ("J5" . 15)
 ("J2" . 15) ("J11" . 15)  ("J161" . 12) ("J50" . 12) ("J160" . 11)
-("J9" . 11) ("J157" . 10) ("J64" . 9)  ("J74" . 6) ("J8" . 6)
+("J157" . 10) ("J64" . 9)  
 ("J116" . 6) ("J7" . 6) ("J14" . 5) ("J133" . 5) ("J18" . 5) ("J68" . 5) 
-("J125" . 5) ("J124" . 5)  ("J17" . 4) ("J19" . 4)   ("J73" . 4) 
+("J125" . 5) ("J124" . 5)  ("J17" . 4) ("J19" . 4) 
 ("J65" . 4) ("J75" . 4) ("J78" . 4)  ("J184" . 3) ("J111" . 3)
-("J138" . 3) ("J137" . 3) ("J66" . 3) ("J115" . 3) ("J76" . 3) 
-("J130" . 2) ("J183" . 2) ("J182" . 2) ("J21" . 2) ("J114" . 2)
-("J80" . 2) ("J121" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
+("J138" . 3) ("J137" . 3) ("J115" . 3) ("J76" . 3) 
+("J130" . 2) ("J183" . 2) ("J182" . 2) ("J114" . 2)
+("J80" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
 ("J166" . 2) ("J0" . 2) ("J1" . 1) ("J79" . 1)  ("J156" . 1)
-("J180" . 1) ("J181" . 1) ("J186" . 1) ("J62" . 1)  ("J110" . 1)
+("J181" . 1) ("J186" . 1) ("J62" . 1)  ("J110" . 1)
 ("J147" . 1) 
 
 |#
-
-;;; FFF This probably doesn't have to be done at run-time, although
-;;; that doesn't harm anything. (But I tried unwrapping it, and
-;;; something went terribly wrong!)
 
 (defun setup-j-fns ()
 
@@ -415,6 +391,46 @@
       (let ((z (H0)))
 	(setf (H0) (first (H0+)))
 	(setf (first (H0+)) z)))
+
+  (defj J8 () "RESTORE H0" (^^ "H0"))
+
+  ;; I don't think that this is necessary as we don't need to do our own GC.
+  (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC."))
+
+  ;; FFF Macrofiy these!!!
+
+  (defj J20 () "MOVE(0)-(n) into WO-n [J20: n=0]" (J2n=move-0-to-n-into-w0-wn 0))
+  (defj J21 () "MOVE(0)-(n) into WO-n [J21: n=1]" (J2n=move-0-to-n-into-w0-wn 1))
+  (defj J22 () "MOVE(0)-(n) into WO-n [J22: n=2]" (J2n=move-0-to-n-into-w0-wn 2))
+  (defj J23 () "MOVE(0)-(n) into WO-n [J23: n=3]" (J2n=move-0-to-n-into-w0-wn 3))
+  (defj J24 () "MOVE(0)-(n) into WO-n [J24: n=4]" (J2n=move-0-to-n-into-w0-wn 4))
+  (defj J25 () "MOVE(0)-(n) into WO-n [J25: n=5]" (J2n=move-0-to-n-into-w0-wn 5))
+  (defj J26 () "MOVE(0)-(n) into WO-n [J26: n=6]" (J2n=move-0-to-n-into-w0-wn 6))
+  (defj J27 () "MOVE(0)-(n) into WO-n [J27: n=7]" (J2n=move-0-to-n-into-w0-wn 7))
+  (defj J28 () "MOVE(0)-(n) into WO-n [J28: n=8]" (J2n=move-0-to-n-into-w0-wn 8))
+  (defj J29 () "MOVE(0)-(n) into WO-n [J29: n=9]" (J2n=move-0-to-n-into-w0-wn 9))
+
+  (defj J30 () "RESTORE W0-W0" (J3n=restore-wn 0))
+  (defj J31 () "RESTORE W0-W1" (J3n=restore-wn 1))
+  (defj J32 () "RESTORE W0-W2" (J3n=restore-wn 2))
+  (defj J33 () "RESTORE W0-W3" (J3n=restore-wn 3))
+  (defj J34 () "RESTORE W0-W4" (J3n=restore-wn 4))
+  (defj J35 () "RESTORE W0-W5" (J3n=restore-wn 5))
+  (defj J36 () "RESTORE W0-W6" (J3n=restore-wn 6))
+  (defj J37 () "RESTORE W0-W7" (J3n=restore-wn 7))
+  (defj J38 () "RESTORE W0-W8" (J3n=restore-wn 8))
+  (defj J39 () "RESTORE W0-W9" (J3n=restore-wn 9))
+
+  (defj J40 () "RESTORE W0-W0" (J4n=restore-wn 0))
+  (defj J41 () "RESTORE W0-W1" (J4n=restore-wn 1))
+  (defj J42 () "RESTORE W0-W2" (J4n=restore-wn 2))
+  (defj J43 () "RESTORE W0-W3" (J4n=restore-wn 3))
+  (defj J44 () "RESTORE W0-W4" (J4n=restore-wn 4))
+  (defj J45 () "RESTORE W0-W5" (J4n=restore-wn 5))
+  (defj J46 () "RESTORE W0-W6" (J4n=restore-wn 6))
+  (defj J47 () "RESTORE W0-W7" (J4n=restore-wn 7))
+  (defj J48 () "RESTORE W0-W8" (J4n=restore-wn 8))
+  (defj J49 () "RESTORE W0-W9" (J4n=restore-wn 9))
 
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
     ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
@@ -549,6 +565,18 @@
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+  (defun J2n=move-0-to-n-into-w0-wn (n)
+    (setf (cell "W0") (H0))
+    (loop for nn from 1 to n ;; Won't do anything if n=0
+	  as val in (H0+)
+	  do (setf (cell (format nil "W~a" nn)) val)))
+
+  (defun J3n=restore-wn (n)
+    (loop for nn from 0 to n do (^^ (format nil "W~a" nn))))
+
+  (defun J4n=preserve-wn (n)
+    (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
 
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
 ;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
